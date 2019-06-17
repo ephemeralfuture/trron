@@ -1,50 +1,50 @@
+'''
+This program is written by visual artist Shane Finan (www.shanefinanart.org)
+to control a multi-display video piece on Raspberry Pis.
+The artwork loops videos of birds feeding until a
+motion sensor is triggered, which jumps the videos to the point
+when the birds fly away. All videos are triggered off the same PIR
+motion sensor, hooked into a GPIO on each Raspberry Pi.
+
+The artwork is staged in the Zoological Museum, Trinity College
+Dublin in June ad July 2019.
+
+The program uses Will Price's omxplayer-wrapper: https://github.com/willprice/python-omxplayer-wrapper
+Some help on testing and development of PIR sensor reading and motion was taken from: https://www.raspberrypi-spy.co.uk/2013/01/cheap-pir-sensors-and-the-raspberry-pi-part-1/
+Many thanks to contributions on the Raspberry Pi forum for help in development.
+'''
+
 from omxplayer.player import OMXPlayer #runs from the popcornmix omxplayer wrapper at https://github.com/popcornmix/omxplayerhttps://github.com/popcornmix/omxplayer and https://python-omxplayer-wrapper.readthedocs.io/en/latest/)
 from pathlib import Path
-import time
-#import sys, tty, termios
-#from msvcrt import getch
+import time #for determining the time of playback
 import RPi.GPIO as GPIO #for taking signal from GPIO
-#import subprocess
-#import logging
-#logging.basicConfig(level=logging.INFO)
-
-import os
-import sys
-buf_arg = 0
-if sys.version_info[0] == 3:
-    os.environ['PYTHONUNBUFFERED'] = '1'
-    buf_arg = 1
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-GPIO_PIR = 7
-
-# Set pin as input
-GPIO.setup(GPIO_PIR,GPIO.IN)      # Echo
+GPIO_PIR = 7 #The GPIO is plugged into BCM pin 07 (GPIO pin 26)
+GPIO.setup(GPIO_PIR,GPIO.IN) # Set pin as input
  
 Current_Motion  = 0 #the current state of motion detection
 Previous_Motion = 0 #the previous state
 
-VIDEO_PATH = Path("siskin_full_chaptertest.m4v")
-#player_log = logging.getLogger("Player 1")
+birdname = "goldfinch"
+VIDEO_PATH = Path("trron_" + birdname + "_final.mp4")
 
 player = OMXPlayer(VIDEO_PATH)
-#dbus = 'org.mpris.MediaPlayer2.omxplayer1'
-#player.playEvent += lambda _: player_log.info("Play")
-#player.pauseEvent += lambda _: player_log.info("Pause")
-#player.stopEvent += lambda _: player_log.info("Stop")
 
-flyin = 4
-feeding = 9
-flyaway = 40
-empty = 44
+
+''' The following variables need to be changed from one
+    program to the next. They are the times when each event happens
+    in the videos.'''
+flyin = 2 #when the bird flies onto the feeder, minus a couple of seconds
+feeding = 6 #when the bird begins feeding, for looping back to the feeding sequence
+flyaway = 192 #the point where the bird flies away
+empty = 195 #where there is an empty section so the empty feeder can be looped back to this point
 
 current_mode = 0 #determines which mode the player is in
 
-motion_detect_bool = False
-
-
+motion_detect_bool = False #boolean for detecting motion
 
 def flyin_mode():
     player.set_position(flyin)
@@ -65,8 +65,6 @@ def empty_mode():
 
 def check_motion_sensor(Current_Motion, Previous_Motion):
     Current_Motion = GPIO.input(GPIO_PIR) # Read PIR state
-    print("checked current motion and it is " + str(Current_Motion))
-    print("checked previous motion and it is " + str(Previous_Motion))
     time.sleep(1)
     if Current_Motion == 1 and Previous_Motion == 0:
         Previous_Motion = 1
@@ -75,47 +73,40 @@ def check_motion_sensor(Current_Motion, Previous_Motion):
         Previous_Motion = 0
         return False
 
-
-
 try:
+    player.play()
     
-    print ("Waiting for PIR to settle ...")
-    print(GPIO.input(GPIO_PIR))
+    while GPIO.input(GPIO_PIR) == 1: #loop while the motion sensor is setting up and still reading high
+        print ("Waiting for PIR to settle ...")
+        time.sleep(2)
  
     print ("  Ready")
     
-    player.play()
-    
-    
-        
-    
-    
+    current_time = int(time.time())
+
     while True:
-                
+        
+        motion_sonsor_reading = GPIO.input(GPIO_PIR)
+        
         if current_mode == 0:
             player.play()
-            time.sleep(1)
-            current_mode = 1
+            next_mode = 1
     
         if current_mode == 1:
             flyin_mode()
-            time.sleep(1)
-            current_mode = 2
+            next_mode = 2
         
         if current_mode == 2:
             motion_detect_bool = check_motion_sensor(Current_Motion, Previous_Motion)
             if motion_detect_bool == True:
-                current_mode = 3
+                next_mode = 3
             elif motion_detect_bool == False:
                 if player.position() > flyaway-2: #loops the feeding mode before flyaway happens
-                    feeding_mode()
-                    time.sleep(1)
-                
+                    feeding_mode()                
         
         if current_mode == 3:
             flyaway_mode()
-            time.sleep(2)
-            current_mode = 4
+            next_mode = 4
         
         if current_mode == 4:
             motion_detect_bool = check_motion_sensor(Current_Motion, Previous_Motion)
@@ -123,20 +114,19 @@ try:
                 print("still motioned!")
                 if int(player.position()) > empty+5:
                     empty_mode()
-                    time.sleep(3)
             elif motion_detect_bool == False:
                 print("no more motion!")
-                current_mode = 1
+                next_mode = 1
 
-
-        # Wait for 10 milliseconds
-        time.sleep(1)
+        if next_mode is not None:
+            current_mode = next_mode #changes mode
+        
+        time.sleep(5) #sleep for 5 seconds
         print("current mode is " + str(current_mode))
-        print("current player time is " + str(player.position()))
-        print(int(player.position()))
-        print(motion_detect_bool)
+        print("motion detect reading is " + str(motion_sonsor_reading))
+        print("current time is " + str(current_time))
 
 except KeyboardInterrupt:
-  print ("  Quit")
-  # Reset GPIO settings
-  GPIO.cleanup()
+    print ("  Quit")
+    # Reset GPIO settings
+    GPIO.cleanup()
