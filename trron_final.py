@@ -9,6 +9,8 @@ motion sensor, hooked into a GPIO on each Raspberry Pi.
 The artwork is staged in the Zoological Museum, Trinity College
 Dublin in June ad July 2019.
 
+Big thanks to Gearóid for all the hard work on setup and the encouagement throughout.
+
 The program uses Will Price's omxplayer-wrapper: https://github.com/willprice/python-omxplayer-wrapper
 Some help on testing and development of PIR sensor reading and motion was taken from: https://www.raspberrypi-spy.co.uk/2013/01/cheap-pir-sensors-and-the-raspberry-pi-part-1/
 Many thanks to contributions on the Raspberry Pi forum for help in development.
