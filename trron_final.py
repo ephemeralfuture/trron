@@ -79,7 +79,7 @@ try:
         motion_sensor_reading = GPIO.input(GPIO_PIR)
         print("motion detect reading is " + str(motion_sensor_reading))
         checktime = time.time() #three second check below for any change in motion sensor reading while it is on cooldown
-        while motion_sensor_reading == 0 and time.time() < checktime + 3:
+        while motion_sensor_reading == 0 and time.time() < checktime + 1:
             motion_sensor_reading = GPIO.input(GPIO_PIR)
             print("seond check on motion sensor is " + str(motion_sensor_reading))
             if motion_sensor_reading ==1:
