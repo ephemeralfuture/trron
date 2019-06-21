@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 '''
 This program is written by visual artist Shane Finan (www.shanefinanart.org)
 to control a multi-display video piece on Raspberry Pis.
@@ -30,8 +32,7 @@ Previous_Motion = 0 #the previous state
 
 birdname = "goldfinch"
 VIDEO_PATH = Path("trron_" + birdname + "_final.mp4")
-
-player = OMXPlayer(VIDEO_PATH)
+player = OMXPlayer(VIDEO_PATH, args=['--no-osd', '--no-keys', '-b'])
 
 
 ''' The following variables need to be changed from one
@@ -60,7 +61,7 @@ def empty_mode():
     print("player seeked to " + str(player.position()) + "for empty")
 
 try:
-    if player.is_playing() == False:
+    while player.is_playing() == False:
         player.play()
     
     while GPIO.input(GPIO_PIR) == 1: #loop while the motion sensor is setting up and still reading high
