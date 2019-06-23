@@ -31,7 +31,7 @@ Current_Motion  = 0 #the current state of motion detection
 Previous_Motion = 0 #the previous state
 
 birdname = "goldfinch"
-VIDEO_PATH = Path("trron_" + birdname + "_final.mp4")
+VIDEO_PATH = Path("trron/trron_" + birdname + "_final.mp4") #NB: This targets a video file in the same folder, but is directed into the parent folder because it is run from a shell script in the home folder. So the location 'trron/' is added. This targets the wrong location if just running from Python!!
 player = OMXPlayer(VIDEO_PATH, args=['--no-osd', '--no-keys', '-b'])
 
 
