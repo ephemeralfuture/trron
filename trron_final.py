@@ -83,6 +83,7 @@ try:
                 flyaway_mode()
                 time.sleep(player_length-empty) #sleep until video runs out, once
                 empty_mode()
+                time.sleep(player_length-empty) #sleep until video runs out, once
             elif int(player.position()) > empty and int(player.position()) > player_length:
                 empty_mode()
                 time.sleep(player_length-empty) #sleep until video runs out, once
@@ -92,7 +93,8 @@ try:
                 motion_sensor_reading = GPIO.input(GPIO_PIR) #check motion sensor again, in case it has been triggered in the interim during the 3-seoncd interval
                 if motion_sensor_reading == 1 and int(player.position()) > empty and int(player.position()) > player_length:
                     empty_mode()
-                elif motion_sensor_reading == 0:    
+                    time.sleep(player_length-empty) #sleep until video runs out, once
+                elif motion_sensor_reading == 0 and int(player.position()) > player_length:    
                     flyin_mode()
             elif int(player.position()) < flyaway and int(player.position()) > flyaway-4:
                 feeding_mode()
@@ -100,4 +102,4 @@ try:
 except KeyboardInterrupt:
     print ("  Quit")
     # Reset GPIO settings
-    GPIO.cleanup()
+    GPIO.cleanup()#! /usr/bin/python3
