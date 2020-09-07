@@ -86,7 +86,7 @@ try:
 
     while True:
         
-        motion_sonsor_reading = GPIO.input(GPIO_PIR)
+        motion_sensor_reading = GPIO.input(GPIO_PIR)
         
         if current_mode == 0:
             player.play()
@@ -123,7 +123,7 @@ try:
         
         time.sleep(5) #sleep for 5 seconds
         print("current mode is " + str(current_mode))
-        print("motion detect reading is " + str(motion_sonsor_reading))
+        print("motion detect reading is " + str(motion_sensor_reading))
         print("current time is " + str(current_time))
 
 except KeyboardInterrupt:
